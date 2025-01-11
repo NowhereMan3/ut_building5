@@ -1,99 +1,149 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Interactive Map with Custom Controls</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css">
+    <title>Legend with Parent-Child Control</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css">
     <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/leaflet.pattern@0.1.0/dist/leaflet.pattern.js"></script>
-<style>
-    body {
-        margin: 0;
-        padding: 0;
-    }
-
-    #map {
-        height: 100vh; /* Full viewport height */
-    }
-
-    .legend-container {
-        font-size: 12px;
-        padding: 10px;
-        background-color: white;
+    <style>
+        #map {
+            height: 100vh;
+        }
+        .compact-legend {
+            font-size: 12px;
+            padding: 10px;
+            background-color: white;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
+            max-width: 250px;
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 1000;
+        }
+        .legend-content {
+            display: none;
+            margin-top: 5px;
+            margin-bottom: 10px;
+        }
+        button {
+            width: 100%;
+            text-align: left;
+            background-color: #f9f9f9;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin-top: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #eaeaea;
+        }
+		
+		 .small-button {
+        width: auto; /* Adjust width to fit the content */
+        padding: 5px 10px; /* Smaller padding for a compact size */
+        font-size: 12px; /* Adjust font size for smaller text */
+        text-align: center; /* Center the text */
+        background-color: #f9f9f9; /* Match other buttons */
         border: 1px solid #ccc;
         border-radius: 5px;
-        box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
-        max-height: 30%; /* Limit the height to 30% of the viewport */
-        overflow-y: auto; /* Add vertical scrolling if content overflows */
-        margin-bottom: 5px; /* Add spacing between stacked legends */
+        cursor: pointer;
     }
 
-    .legend-item {
-        display: flex;
-        align-items: center;
-        margin-bottom: 5px;
+    .small-button:hover {
+        background-color: #eaeaea; /* Match hover behavior */
     }
-
-    .legend-symbol {
-        width: 10px;
-        height: 10px;
-        margin-right: 4px;
-        border: 1px solid #ccc;
-    }
-
-    .leaflet-top.leaflet-right {
-        display: flex;
-        flex-direction: column;
-        gap: 2px; /* Add spacing between legends */
-    }
-</style>
-
+		
+		
+		
+    </style>
 </head>
 <body>
-    <div id="map"></div>
-	
-	<div class="custom-control">
-        <button onclick="defaultMapSettings()">Default</button>
-    </div>
+
+<div id="map"></div>
+
+<div id="legend-container" class="compact-legend">
+    <h4>Layers</h4>
+    <button onclick="toggleLegend('leisure-areas')">Leisure Areas</button>
+    <div id="legend-leisure-areas" class="legend-content"></div>
+
+    <button onclick="toggleLegend('buildings')">Buildings</button>
+    <div id="legend-buildings" class="legend-content"></div>
+
+    <button onclick="toggleLegend('outdoor-gyms')">Outdoor Gyms</button>
+    <div id="legend-outdoor-gyms" class="legend-content"></div>
+
+    <button onclick="toggleLegend('parks')">Parks</button>
+    <div id="legend-parks" class="legend-content"></div>
+</div>
+
+
+<div class="custom-control">
+    <button class="small-button" onclick="defaultMapSettings()">Default</button>
+</div>
+
+
+
 
 <script>
     // Initialize the map
-    let map = L.map('map').setView([58.373523, 26.716045], 12);
-    const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 20,
-        opacity: 0.3,
+    const map = L.map('map').setView([58.373523, 26.716045], 12);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+		opacity: 0.3,
         attribution: 'OpenStreetMap contributors',
-    });
-    osm.addTo(map);
+    }).addTo(map);
 
+    // Define the layers
+    const leisureAreas = {
+        "Tähtvere Sports Park": L.layerGroup(),
+        "Rüütli Street": L.layerGroup(),
+        "Aparaaditehas Cultural Center": L.layerGroup(),
+        "Raekoja Plats": L.layerGroup()
+    };
+	
+	
+	
+	
+	
+	
 
+    const buildings = {
+        "Museum": L.layerGroup(),
+        "Library": L.layerGroup(),
+        "Student Residence": L.layerGroup(),
+        "Tartu University Hospital": L.layerGroup(),
+        "University Building": L.layerGroup(),
+        "University Building with Library": L.layerGroup(),
+        "University Building with Library and Museum": L.layerGroup(),
+        "University Building with Library and Gym": L.layerGroup(),
+        "University Building with Museum": L.layerGroup(),
+        "University of Tartu Botanical Garden": L.layerGroup(),
+        "Counselling and psychotherapy centres and clinics": L.layerGroup(),
+        "National Archives of Estonia": L.layerGroup()
+    };
 
+    const outdoorGym = L.layerGroup();
+    const parks = L.layerGroup();
 
-
-
-// Define individual subcategory layers for Leisure Areas
-const leisureAreas = {
-    "Tähtvere Sports Park": L.layerGroup(),
-    "Rüütli Street": L.layerGroup(),
-    "Aparaaditehas Cultural Center": L.layerGroup(),
-    "Raekoja Plats": L.layerGroup()
-};
-
-// Define GeoJSON data for Leisure Areas
-const leisureGeoJSON = {
-    "type": "FeatureCollection",
-    "features": [
+    // Example GeoJSON for Leisure Areas
+    const leisureGeoJSON = {
+        "type": "FeatureCollection",
+        "features": [
 { "type": "Feature", "properties": { "id": "1", "Name": "Tähtvere Sports Park" }, "geometry": { "type": "MultiPolygon", "coordinates": [ [ [ [ 26.710200336584094, 58.391474130925566 ], [ 26.708816344720361, 58.390494294802977 ], [ 26.706761526507218, 58.38912069267765 ], [ 26.705519412425168, 58.388388328326634 ], [ 26.704568048311852, 58.387714210980604 ], [ 26.702751018578216, 58.386593181948832 ], [ 26.706476577275684, 58.384882344275269 ], [ 26.70892160036356, 58.383713912000893 ], [ 26.698220764019439, 58.386345456512629 ], [ 26.696658631326315, 58.38708078876985 ], [ 26.699628590171297, 58.388664233057476 ], [ 26.69981734335364, 58.388681713934957 ], [ 26.700009064374616, 58.38864902956702 ], [ 26.700125256404952, 58.388608995527008 ], [ 26.70033211565951, 58.388640407619938 ], [ 26.700438560155405, 58.388695415800157 ], [ 26.701057017975181, 58.389072861570561 ], [ 26.701401707033661, 58.389301764866396 ], [ 26.700919811090106, 58.389505212040504 ], [ 26.700707609368099, 58.389670743954042 ], [ 26.700631489503447, 58.389833396997759 ], [ 26.700822652430606, 58.390015447151093 ], [ 26.701048436163184, 58.390293390350003 ], [ 26.700516009801181, 58.390193712653598 ], [ 26.700224758472196, 58.390661528871057 ], [ 26.700007660407604, 58.39085221404347 ], [ 26.698805460978729, 58.391439491855031 ], [ 26.697936797977796, 58.391754884546756 ], [ 26.697241754784226, 58.392023658709519 ], [ 26.696092465627395, 58.392412961820796 ], [ 26.695346822163582, 58.392822363534954 ], [ 26.694519568211366, 58.393412418570882 ], [ 26.694096149377796, 58.393757752462385 ], [ 26.693675137263874, 58.394001040649421 ], [ 26.69294637984353, 58.394631950932911 ], [ 26.692475103497046, 58.395243112692029 ], [ 26.692540656430864, 58.395520869900373 ], [ 26.692649173484668, 58.39564741524805 ], [ 26.692873929341854, 58.395778666675355 ], [ 26.692696587523304, 58.39591079271883 ], [ 26.692266398069535, 58.396079116084159 ], [ 26.691919886985961, 58.396160679573825 ], [ 26.691645222526553, 58.396178994944165 ], [ 26.691407031576652, 58.396184015495209 ], [ 26.691166257382346, 58.396199826166459 ], [ 26.690960056622028, 58.396222065219796 ], [ 26.690552286109792, 58.396282548915138 ], [ 26.690309473607442, 58.396316294427031 ], [ 26.690139893355006, 58.396371758300958 ], [ 26.690080293017509, 58.396439219931381 ], [ 26.690826498784904, 58.396614958741928 ], [ 26.691714685440825, 58.396819908999525 ], [ 26.692275775961775, 58.396936914136177 ], [ 26.692834010573844, 58.397049951060396 ], [ 26.693085905487035, 58.397313042341416 ], [ 26.693010730245195, 58.397399622118733 ], [ 26.692879565649964, 58.397556272731876 ], [ 26.69289809775227, 58.397620298735085 ], [ 26.693023061304189, 58.397649871879317 ], [ 26.693273809267378, 58.397719736637882 ], [ 26.693263205273553, 58.397759326114191 ], [ 26.693129306493194, 58.397880247523332 ], [ 26.693075436053743, 58.397978008818278 ], [ 26.693086889531681, 58.398038605372719 ], [ 26.692838138433981, 58.398262152401699 ], [ 26.692774727087183, 58.398324327616848 ], [ 26.694204889530688, 58.398618036291552 ], [ 26.694881929139438, 58.397845063079899 ], [ 26.695967822965553, 58.397070611916419 ], [ 26.69649139260715, 58.396608638556302 ], [ 26.697309538209954, 58.396254959771483 ], [ 26.698467936041816, 58.395894085487413 ], [ 26.699636175518819, 58.395661826263932 ], [ 26.700511642356147, 58.395700574017397 ], [ 26.700411886616685, 58.395466487627544 ], [ 26.702177105013412, 58.394842232652692 ], [ 26.702691004398851, 58.394788411604594 ], [ 26.704657191240013, 58.393986298011754 ], [ 26.705218923849166, 58.393845563498679 ], [ 26.705574001096299, 58.394031292055772 ], [ 26.705961672091849, 58.394108966766851 ], [ 26.710200336584094, 58.391474130925566 ] ] ] ] } },
 { "type": "Feature", "properties": { "id": "2", "Name": "Rüütli Street" }, "geometry": { "type": "MultiPolygon", "coordinates": [ [ [ [ 26.72044675013132, 58.383624930511253 ], [ 26.720488687850249, 58.38354485633748 ], [ 26.720567049010906, 58.383412560965382 ], [ 26.720695434526295, 58.383178098914392 ], [ 26.720837312738947, 58.382919863376287 ], [ 26.720993432809827, 58.382669599956529 ], [ 26.721134495585567, 58.382461484236075 ], [ 26.721267103563971, 58.382237667753039 ], [ 26.72157332992191, 58.38172563653832 ], [ 26.721692588055888, 58.381522011081962 ], [ 26.721776154671993, 58.381369025787428 ], [ 26.72191661242622, 58.381131173283428 ], [ 26.721953465686411, 58.381057022421984 ], [ 26.722053233064795, 58.380915322430369 ], [ 26.722163255324315, 58.380730010941456 ], [ 26.722258739334123, 58.380576994743926 ], [ 26.722422582124722, 58.380316722742485 ], [ 26.722377987591276, 58.380312753100817 ], [ 26.722272206311086, 58.380486790694448 ], [ 26.721980702697106, 58.380946617817713 ], [ 26.721883049815755, 58.381093640819614 ], [ 26.721783288620202, 58.381301547907306 ], [ 26.721569623674306, 58.381666665740376 ], [ 26.721491408235742, 58.381800748188468 ], [ 26.721301841260722, 58.382125090394965 ], [ 26.721224539985794, 58.38222694415564 ], [ 26.720985240388902, 58.38261318520447 ], [ 26.720815608864267, 58.382886998662968 ], [ 26.720680126846467, 58.383161873353878 ], [ 26.720553831410562, 58.383379291663594 ], [ 26.72041599900156, 58.38362379649427 ], [ 26.72044675013132, 58.383624930511253 ] ] ] ] } },
 { "type": "Feature", "properties": { "id": "3", "Name": "Aparaaditehas Cultural Center" }, "geometry": { "type": "MultiPolygon", "coordinates": [ [ [ [ 26.715759644476861, 58.371120547752653 ], [ 26.717041604328443, 58.370343505019406 ], [ 26.716058928089293, 58.369922448010051 ], [ 26.714871384025962, 58.37073147025162 ], [ 26.715759644476861, 58.371120547752653 ] ] ] ] } },
 { "type": "Feature", "properties": { "id": "4", "Name": "Raekoja Plats" }, "geometry": { "type": "MultiPolygon", "coordinates": [ [ [ [ 26.721016761883288, 58.38021484995609 ], [ 26.721393391845965, 58.380242800147762 ], [ 26.721898050204068, 58.380272816360019 ], [ 26.722601347265272, 58.380332174944691 ], [ 26.723289373091603, 58.380430234272602 ], [ 26.723926510263183, 58.380519781331436 ], [ 26.724905369869727, 58.380717166614495 ], [ 26.725074211041466, 58.38053845877706 ], [ 26.724983879387349, 58.380492413894672 ], [ 26.724528181958913, 58.380387005789892 ], [ 26.723751604820791, 58.380206889308312 ], [ 26.722766540207328, 58.379988039953872 ], [ 26.721808219014889, 58.379701450229774 ], [ 26.721665171384036, 58.379800447413707 ], [ 26.721016761883288, 58.38021484995609 ] ] ] ] } }
    
 
-
-    ]
-};
-
+        ]
+    };
+	
+	
 // Function to determine color for Leisure Areas
 function getLeisureColor(name) {
     switch (name) {
@@ -103,7 +153,10 @@ function getLeisureColor(name) {
         case "Raekoja Plats": return "#00ccf2";
         default: return "#808080";
     }
-}
+}	
+	
+	
+	
 
 // Style for Leisure Areas
 function leisureStyle(feature) {
@@ -132,71 +185,12 @@ L.geoJSON(leisureGeoJSON, {
     }
 });
 
-// Define individual subcategory layers for Buildings
-const buildings = {
-    "Museum": L.layerGroup(),
-    "Library": L.layerGroup(),
-    "Student Residence": L.layerGroup(),
-    "Tartu University Hospital": L.layerGroup(),
-    "University Building": L.layerGroup(),
-    "University Building with Library": L.layerGroup(),
-    "University Building with Library and Museum": L.layerGroup(),
-    "University Building with Library and Gym": L.layerGroup(),
-    "University Building with Museum": L.layerGroup(),
-    "University of Tartu Botanical Garden": L.layerGroup(),
-    "Counselling and psychotherapy centres and clinics": L.layerGroup(),
-    "National Archives of Estonia": L.layerGroup()
-};
-
-// Define GeoJSON data for Buildings
-const buildingsGeoJSON = {
-    "type": "FeatureCollection",
-    "features": [
-	{
-    "type": "Feature",
-    "properties": {
-        "fid": 13.0,
-        "ads_lahiaa": "Ülikooli tn 17",
-        "name": "Institute of Cutural Research Library",
-        "university_building": 1.0,
-        "library": 1.0,
-        "museum": null,
-        "dormitory": null,
-        "Botanical Garden": null,
-        "hospital": null,
-        "gym": null,
-        "mental_health_clinics": null,
-        "type_t": "ul",
-        "name_t": null,
-        "type_tt": "University Building with Library",
-        "Address": "Ülikooli tn 17",
-        "Name": "Institute of Cutural Research Library"
-    },
-    "geometry": {
-        "type": "Polygon",
-        "coordinates": [
-            [
-                [26.720971627636438, 58.381170900462401],
-                [26.720852716632493, 58.381154169755227],
-                [26.720816628257101, 58.381217839693605],
-                [26.720801297246084, 58.38124460274215],
-                [26.720733284818738, 58.381233876736431],
-                [26.720684669586621, 58.381226205757088],
-                [26.720699923596253, 58.381199552195234],
-                [26.720501420654667, 58.381169691111374],
-                [26.720455824312978, 58.381412345171626],
-                [26.720987852808918, 58.38145016597413],
-                [26.721050537400497, 58.381363823914832],
-                [26.721081400480671, 58.38131378894343],
-                [26.721112157085088, 58.381263926962845],
-                [26.721158041206088, 58.381189543682247],
-                [26.720972797823819, 58.381162797274889],
-                [26.720971627636438, 58.381170900462401]
-            ]
-        ]
-    }
-},
-
+    // Example GeoJSON for Buildings
+    const buildingsGeoJSON = {
+        "type": "FeatureCollection",
+        "features": [
+{"type":"Feature","properties":{"fid":13.0,"ads_lahiaa":"Ülikooli tn 17","name":"Institute of Cutural Research Library","university_building":1.0,"library":1.0,"museum":null,"dormitory":null,"Botanical Garden":null,"hospital":null,"gym":null,"mental_health_clinics":null,"type_t":"ul","name_t":null,"type_tt":"University Building with Library","Address":"Ülikooli tn 17","Name":"Institute of Cutural Research Library"},"geometry":{"type":"Polygon","coordinates":[[[26.720971627636438,58.381170900462401],[26.720852716632493,58.381154169755227],[26.720816628257101,58.381217839693605],[26.720801297246084,58.38124460274215],[26.720733284818738,58.381233876736431],[26.720684669586621,58.381226205757088],[26.720699923596253,58.381199552195234],[26.720501420654667,58.381169691111374],[26.720455824312978,58.381412345171626],[26.720987852808918,58.38145016597413],[26.721050537400497,58.381363823914832],[26.721081400480671,58.38131378894343],[26.721112157085088,58.381263926962845],[26.721158041206088,58.381189543682247],[26.720972797823819,58.381162797274889],[26.720971627636438,58.381170900462401]]]}},
+  
 { "type": "Feature", "properties": { "fid": 1695.0, "ads_lahiaa": "Riia tn 15b", "name": "Eesti Pereteraapia Keskus (Family consultations, Family therapy training center )", "university_building": null, "library": null, "museum": null, "dormitory": null, "Botanical Garden": null, "hospital": null, "gym": null, "mental_health_clinics": 1.0, "type_t": "mhc", "name_t": null, "type_tt": "Counselling and psychotherapy centres and clinics", "Address": "Riia tn 15b", "Name": "Eesti Pereteraapia Keskus (Family consultations, Family therapy training center )" }, "geometry": { "type": "Polygon", "coordinates": [ [ [ 26.719903208964134, 58.373095170597708 ], [ 26.719885321966405, 58.373106739175689 ], [ 26.719815554208434, 58.373153919026514 ], [ 26.719772872340606, 58.373181516569076 ], [ 26.719833180203437, 58.373207188620448 ], [ 26.719689009903451, 58.373355831401135 ], [ 26.719811529833343, 58.373388192900087 ], [ 26.71980142843794, 58.373398696943646 ], [ 26.719869366334486, 58.373416631329 ], [ 26.720090132095464, 58.373182320393028 ], [ 26.72008521510082, 58.373175128725769 ], [ 26.720075834234208, 58.373166612450859 ], [ 26.720064549736296, 58.373160023772108 ], [ 26.719903208964134, 58.373095170597708 ] ] ] } },
 { "type": "Feature", "properties": { "fid": 2434.0, "ads_lahiaa": "Tiigi tn 14", "name": "Student Residence", "university_building": null, "library": null, "museum": null, "dormitory": 1.0, "Botanical Garden": null, "hospital": null, "gym": null, "mental_health_clinics": null, "type_t": "d", "name_t": null, "type_tt": "Student Residence", "Address": "Tiigi tn 14", "Name": "Student Residence" }, "geometry": { "type": "Polygon", "coordinates": [ [ [ 26.713304460945828, 58.374337311813939 ], [ 26.713228786899741, 58.374395890542175 ], [ 26.712607235703096, 58.3741744855433 ], [ 26.712576449008846, 58.374198269318931 ], [ 26.712555748638923, 58.37419089171042 ], [ 26.712512589559676, 58.37422437351136 ], [ 26.712533150563036, 58.374231718146355 ], [ 26.712482241622059, 58.374271178455466 ], [ 26.712773116667559, 58.37437479256343 ], [ 26.712814798552881, 58.37438964058002 ], [ 26.713107628440973, 58.374493958229777 ], [ 26.713122525127581, 58.374499266615032 ], [ 26.713147808305006, 58.374479535480752 ], [ 26.713185040800493, 58.374492797639334 ], [ 26.713233857639231, 58.374454828230256 ], [ 26.713318173198104, 58.374484881127472 ], [ 26.71351726586478, 58.374555831855773 ], [ 26.713550260716691, 58.374567593537122 ], [ 26.713676381040361, 58.374469779328003 ], [ 26.713304460945828, 58.374337311813939 ] ] ] } },
 { "type": "Feature", "properties": { "fid": 2952.0, "ads_lahiaa": "Ülikooli tn 11", "name": "Library of the Finnish Institute", "university_building": null, "library": 1.0, "museum": null, "dormitory": null, "Botanical Garden": null, "hospital": null, "gym": null, "mental_health_clinics": null, "type_t": "l", "name_t": null, "type_tt": "Library", "Address": "Ülikooli tn 11", "Name": "Library of the Finnish Institute" }, "geometry": { "type": "Polygon", "coordinates": [ [ [ 26.72143023685615, 58.380595708914562 ], [ 26.721431040346083, 58.380593930563748 ], [ 26.721368408092882, 58.380587061932005 ], [ 26.721382115274164, 58.380552578666318 ], [ 26.72131183985746, 58.380544875546228 ], [ 26.721351212592232, 58.380445803196544 ], [ 26.72093538444949, 58.380389476434722 ], [ 26.720774930962872, 58.380569261325611 ], [ 26.721265174465874, 58.380662263683519 ], [ 26.721385133761427, 58.380681730268982 ], [ 26.721390019576706, 58.380682524677894 ], [ 26.721395584553875, 58.380673069767269 ], [ 26.72143023685615, 58.380595708914562 ] ], [ [ 26.721112954484255, 58.38047084040749 ], [ 26.721226782267269, 58.380482036113243 ], [ 26.721184254308291, 58.380601384771211 ], [ 26.721039206965226, 58.380572289901593 ], [ 26.721112954484255, 58.38047084040749 ] ] ] } },
@@ -221,29 +215,7 @@ const buildingsGeoJSON = {
 { "type": "Feature", "properties": { "fid": 9570.0, "ads_lahiaa": "Kivi tn 23", "name": "E.G.U. Erapraksis", "university_building": null, "library": null, "museum": null, "dormitory": null, "Botanical Garden": null, "hospital": null, "gym": null, "mental_health_clinics": 1.0, "type_t": "mhc", "name_t": "E.G.U. Erapraksis", "type_tt": "Counselling and psychotherapy centres and clinics", "Address": "Kivi tn 23", "Name": "E.G.U. Erapraksis" }, "geometry": { "type": "Polygon", "coordinates": [ [ [ 26.730848355809808, 58.382925318951244 ], [ 26.730830586976047, 58.38291681208338 ], [ 26.730713917565243, 58.382860962870836 ], [ 26.730529118300446, 58.382967462805716 ], [ 26.730788754388517, 58.383091736208151 ], [ 26.730986596641383, 58.382991489560013 ], [ 26.730848355809808, 58.382925318951244 ] ] ] } },
 { "type": "Feature", "properties": { "fid": 9882.0, "ads_lahiaa": "Sangla tn 63", "name": "Elite Clinic", "university_building": null, "library": null, "museum": null, "dormitory": null, "Botanical Garden": null, "hospital": null, "gym": null, "mental_health_clinics": 1.0, "type_t": "mhc", "name_t": null, "type_tt": "Counselling and psychotherapy centres and clinics", "Address": "Sangla tn 63", "Name": "Elite Clinic" }, "geometry": { "type": "Polygon", "coordinates": [ [ [ 26.684606995758664, 58.370363323300843 ], [ 26.684630477689389, 58.370373872586583 ], [ 26.684727162889185, 58.370314474174663 ], [ 26.684707721098867, 58.37030577181104 ], [ 26.68476528021969, 58.370270442364195 ], [ 26.684669875315151, 58.370227710283764 ], [ 26.68469073584652, 58.370214862244332 ], [ 26.684678030225861, 58.370186159931478 ], [ 26.684638435102269, 58.370168392764306 ], [ 26.684585404403901, 58.370163506094826 ], [ 26.68456068509613, 58.370178681705653 ], [ 26.684484804281283, 58.370144605220389 ], [ 26.684492076320154, 58.370129167693051 ], [ 26.684461226802206, 58.370115295951763 ], [ 26.684431464788887, 58.37012063054685 ], [ 26.684316995464201, 58.370069196861962 ], [ 26.684281459926343, 58.370063402887162 ], [ 26.684254060995784, 58.370067205103084 ], [ 26.684101942960314, 58.37016066554984 ], [ 26.684101460946653, 58.370183067844138 ], [ 26.684112470722457, 58.370199621381666 ], [ 26.684215383388189, 58.370245951917191 ], [ 26.684216731503863, 58.370253543360981 ], [ 26.684253336907968, 58.370270007735392 ], [ 26.684267785812668, 58.370269524070302 ], [ 26.684297484489427, 58.370282880932301 ], [ 26.684293273469798, 58.370287992477898 ], [ 26.684296018447302, 58.370306058722193 ], [ 26.684311620150293, 58.3703220483943 ], [ 26.684405317312709, 58.370364142743618 ], [ 26.684436315421184, 58.370371658544649 ], [ 26.684471438238134, 58.370370910650699 ], [ 26.684488102698921, 58.370368529313303 ], [ 26.684551872489362, 58.370397181695054 ], [ 26.684606995758664, 58.370363323300843 ] ] ] } },
 
-{
-    type: "Feature",
-    properties: {
-        fid: 9976.0,
-        ads_lahiaa: "Ravila tn 14a",
-        name: "Chemistry Library, Department of Geology Library",
-        university_building: 1.0,
-        library: 1.0,
-        museum: null,
-        dormitory: null,
-        BotanicalGarden: null,
-        hospital: null,
-        gym: null,
-        mental_health_clinics: null,
-        type_t: "ul",
-        name_t: "Institute of Chemistry, Department of Geology of the Institute of Ecology and Earth Sciences, Institute of Bioengineering",
-        type_tt: "University Building with Library",
-        Address: "Ravila tn 14a",
-        Name: "Chemistry Library, Department of Geology Library"
-    },
-    geometry: {
-        type: "Polygon",
-        coordinates: [ [ [ 26.692673189314242, 58.367405174335502 ], [ 26.692573759023446, 58.367482752254439 ], [ 26.69282211961935, 58.367570674157434 ], [ 26.692921567370995, 58.367493104656312 ], [ 26.693060572001009, 58.367384697003615 ], [ 26.693246748386731, 58.367239485573315 ], [ 26.693385152909244, 58.367131530488379 ], [ 26.693733759416311, 58.366859623877296 ], [ 26.693481412056851, 58.366770296344555 ], [ 26.693402414182582, 58.366831907421727 ], [ 26.693193569041409, 58.366757969978131 ], [ 26.693097883257884, 58.366832593916989 ], [ 26.692977958872426, 58.366790142956035 ], [ 26.693102665087007, 58.36672290379606 ], [ 26.692758571675348, 58.366601096329376 ], [ 26.692673657479315, 58.366709036087627 ], [ 26.692548118079849, 58.366774333520816 ], [ 26.692884267621817, 58.366893325997019 ], [ 26.69294729255131, 58.366812230020258 ], [ 26.69306883367161, 58.36685524892512 ], [ 26.693023145035831, 58.366890879990663 ], [ 26.693164759734344, 58.36694101408861 ], [ 26.693139987634744, 58.366960343981617 ], [ 26.693209678760287, 58.366985012224482 ], [ 26.693135230574715, 58.367043067596363 ], [ 26.692556998290279, 58.366838384624721 ], [ 26.692526866837639, 58.366861880028594 ], [ 26.69245383864617, 58.366918835724924 ], [ 26.692418591696789, 58.366946329842634 ], [ 26.69299715963162, 58.367151141160655 ], [ 26.692961476579377, 58.367178968120534 ], [ 26.692917450657799, 58.36721331503486 ], [ 26.692811017517052, 58.367296360478335 ], [ 26.692494163049211, 58.367184194015735 ], [ 26.692366223681752, 58.367138910398765 ], [ 26.692231798736284, 58.36709132839735 ], [ 26.692207267722978, 58.367110464310123 ], [ 26.69212942896003, 58.36717116948234 ], [ 26.692092809102093, 58.367199725818253 ], [ 26.692673189314242, 58.367405174335502 ] ] ] } },
+{"type":"Feature","properties":{"fid":9976.0,"ads_lahiaa":"Ravila tn 14a","name":"Chemistry Library, Department of Geology Library","university_building":1.0,"library":1.0,"museum":null,"dormitory":null,"BotanicalGarden":null,"hospital":null,"gym":null,"mental_health_clinics":null,"type_t":"ul","name_t":"Institute of Chemistry, Department of Geology of the Institute of Ecology and Earth Sciences, Institute of Bioengineering","type_tt":"University Building with Library","Address":"Ravila tn 14a","Name":"Chemistry Library, Department of Geology Library"},"geometry":{"type":"Polygon","coordinates":[[[26.692673189314242,58.367405174335502],[26.692573759023446,58.367482752254439],[26.69282211961935,58.367570674157434],[26.692921567370995,58.367493104656312],[26.693060572001009,58.367384697003615],[26.693246748386731,58.367239485573315],[26.693385152909244,58.367131530488379],[26.693733759416311,58.366859623877296],[26.693481412056851,58.366770296344555],[26.693402414182582,58.366831907421727],[26.693193569041409,58.366757969978131],[26.693097883257884,58.366832593916989],[26.692977958872426,58.366790142956035],[26.693102665087007,58.36672290379606],[26.692758571675348,58.366601096329376],[26.692673657479315,58.366709036087627],[26.692548118079849,58.366774333520816],[26.692884267621817,58.366893325997019],[26.69294729255131,58.366812230020258],[26.69306883367161,58.36685524892512],[26.693023145035831,58.366890879990663],[26.693164759734344,58.36694101408861],[26.693139987634744,58.366960343981617],[26.693209678760287,58.366985012224482],[26.693135230574715,58.367043067596363],[26.692556998290279,58.366838384624721],[26.692526866837639,58.366861880028594],[26.69245383864617,58.366918835724924],[26.692418591696789,58.366946329842634],[26.69299715963162,58.367151141160655],[26.692961476579377,58.367178968120534],[26.692917450657799,58.36721331503486],[26.692811017517052,58.367296360478335],[26.692494163049211,58.367184194015735],[26.692366223681752,58.367138910398765],[26.692231798736284,58.36709132839735],[26.692207267722978,58.367110464310123],[26.69212942896003,58.36717116948234],[26.692092809102093,58.367199725818253],[26.692673189314242,58.367405174335502]]]}},
 
 
 { "type": "Feature", "properties": { "fid": 9978.0, "ads_lahiaa": "Riia tn 12", "name": "Baltic Defence College Library", "university_building": null, "library": 1.0, "museum": 1.0, "dormitory": null, "Botanical Garden": null, "hospital": null, "gym": null, "mental_health_clinics": null, "type_t": "lm", "name_t": null, "type_tt": "Library, Museum", "Address": "Riia tn 12", "Name": "Baltic Defence College Library, Museum of the Estonian National Defence College" }, "geometry": { "type": "Polygon", "coordinates": [ [ [ 26.722483174109669, 58.373194350969719 ], [ 26.72252146124778, 58.373348898983771 ], [ 26.72249014600191, 58.373357564462211 ], [ 26.722471819018558, 58.373339534523161 ], [ 26.722420749157806, 58.373353743351949 ], [ 26.722435752771176, 58.373368609303178 ], [ 26.722360489010903, 58.373389570416563 ], [ 26.722310199684301, 58.373339747562333 ], [ 26.722085196116179, 58.373402425035792 ], [ 26.722106016380248, 58.373423061644132 ], [ 26.722139337989585, 58.373456065638145 ], [ 26.722053023346888, 58.373480110799775 ], [ 26.722063766515568, 58.373490754478475 ], [ 26.722007178978338, 58.373506608420165 ], [ 26.721938936712174, 58.373475679158616 ], [ 26.721352909291227, 58.373210075806377 ], [ 26.721195335805902, 58.373306034877636 ], [ 26.722049654198134, 58.373693236432736 ], [ 26.722121073192358, 58.373649740227904 ], [ 26.722204225659606, 58.373620406935544 ], [ 26.722234631867746, 58.373647776091779 ], [ 26.722628950072998, 58.373526861289086 ], [ 26.722602036416475, 58.373502634632118 ], [ 26.722679812730547, 58.373481206423286 ], [ 26.722782526512187, 58.373464637578564 ], [ 26.722708299069005, 58.373154952427299 ], [ 26.722702456703928, 58.373141328772753 ], [ 26.722581302303002, 58.372852952773655 ], [ 26.722352498999218, 58.372879481035632 ], [ 26.722392469263028, 58.372974605873367 ], [ 26.722373245170541, 58.37297683113281 ], [ 26.722389404266689, 58.373015278187196 ], [ 26.722406065852098, 58.373013314268192 ], [ 26.722460386624391, 58.373140742482327 ], [ 26.722483174109669, 58.373194350969719 ] ] ] } },
@@ -320,7 +292,9 @@ const buildingsGeoJSON = {
 { "type": "Feature", "properties": { "fid": 20298.0, "ads_lahiaa": "L. Puusepa tn 8", "name": "Pregnancy crisis counseling at the Women's Clinic of the University of Tartu Hospital", "university_building": 1.0, "library": null, "museum": null, "dormitory": null, "Botanical Garden": null, "hospital": 1.0, "gym": null, "mental_health_clinics": 1.0, "type_t": "mhc", "name_t": null, "type_tt": "Tartu University Hospital", "Address": "L. Puusepa tn 8", "Name": "Pregnancy crisis counseling at the Women's Clinic of the University of Tartu Hospital" }, "geometry": { "type": "Polygon", "coordinates": [ ] } },
 { "type": "Feature", "properties": { "fid": 3840.0, "ads_lahiaa": "Vaksali tn 17", "name": "Tundekoda", "university_building": null, "library": null, "museum": null, "dormitory": null, "Botanical Garden": null, "hospital": null, "gym": null, "mental_health_clinics": 1.0, "type_t": "mhc", "name_t": null, "type_tt": "Counselling and psychotherapy centres and clinics", "Address": "Vaksali tn 17", "Name": "Tundekoda" }, "geometry": { "type": "Polygon", "coordinates": [ ] } }
     ]
-};
+    };
+	
+	
 
 // Function to determine color for Buildings
 function getBuildingsColor(type_tt) {
@@ -339,16 +313,18 @@ function getBuildingsColor(type_tt) {
         case "National Archives of Estonia": return "#00ffa6";
         default: return "#808080";
     }
-}
+}	
+	
+	
 
-// Style for Buildings
+// Style function for Buildings
 function buildingStyle(feature) {
     const color = getBuildingsColor(feature.properties.type_tt);
     return {
         fillColor: color,
         fillOpacity: 0.7,
         color: 'grey',
-        weight: 1,
+        weight: 1
     };
 }
 
@@ -372,8 +348,8 @@ L.geoJSON(buildingsGeoJSON, {
     }
 });
 
-// Outdoor Gym Layer
-const outdoorGym = L.layerGroup();
+
+// Outdoor Gym GeoJSON Example
 const outdoorGymGeoJSON = {
     "type": "FeatureCollection",
     "features": [
@@ -386,6 +362,7 @@ const outdoorGymGeoJSON = {
         ]
 };
 
+// Add Outdoor Gym GeoJSON data
 L.geoJSON(outdoorGymGeoJSON, {
     pointToLayer: (feature, latlng) => {
         return L.circleMarker(latlng, {
@@ -405,156 +382,8 @@ L.geoJSON(outdoorGymGeoJSON, {
 });
 
 
-
-
-
-
-
-
-
-
-
-
-
-// Function to create legends
-function createLegendWithPattern(title, layers, getColor, isPattern = false) {
-    const legend = L.control({ position: 'topright' });
-    legend.onAdd = () => {
-        const titleId = title.toLowerCase().replace(/\s+/g, '-');
-        const div = L.DomUtil.create('div', 'legend-container');
-        div.innerHTML = `
-            <h4>
-                <input type="checkbox" id="${titleId}-master-checkbox" name="${titleId}-master-checkbox" checked>
-                <label for="${titleId}-master-checkbox">${title}</label>
-            </h4>
-            <div id="${titleId}-subcategories">
-                ${Object.keys(layers).map((key) => {
-                    const layerId = `${titleId}-${key.replace(/\s+/g, '-').toLowerCase()}`;
-                    const color = getColor(key);
-                    const symbolStyle = isPattern
-                        ? `background: repeating-linear-gradient(45deg, ${color}, ${color} 10px, #fff 10px, #fff 20px);`
-                        : `background-color: ${color};`;
-
-                    return `
-                        <div class="legend-item">
-                            <input type="checkbox" id="${layerId}" name="${layerId}" class="legend-checkbox" data-layer="${key}" checked>
-                            <label for="${layerId}">
-                                <div class="legend-symbol" style="${symbolStyle}"></div>
-                                ${key}
-                            </label>
-                        </div>
-                    `;
-                }).join('')}
-            </div>`;
-        return div;
-    };
-    return legend;
-}
-
-// Create Legends
-const leisureLegend = createLegendWithPattern("Leisure Areas", leisureAreas, getLeisureColor, true);
-const buildingLegend = createLegendWithPattern("Buildings", buildings, getBuildingsColor, false);
-
-
-
-
-
-
-
-
-
-
-
-
-// Add Legends to Map
-leisureLegend.addTo(map);
-buildingLegend.addTo(map);
-
-
-// Create Outdoor Gyms Legend
-const outdoorGymLegend = L.control({ position: 'topright' });
-
-outdoorGymLegend.onAdd = () => {
-    const div = L.DomUtil.create('div', 'legend-container');
-    div.innerHTML = `
-        <h4>
-            <input type="checkbox" id="outdoor-gyms-master-checkbox" name="outdoor-gyms-master-checkbox" checked>
-            <label for="outdoor-gyms-master-checkbox">
-                <div class="legend-symbol" style="background-color: red; display: inline-block; width: 20px; height: 20px; border: 1px solid #ccc; margin-right: 5px;"></div>
-                Outdoor Gyms
-            </label>
-        </h4>
-    `;
-    return div;
-};
-
-// Add Legend to Map
-outdoorGymLegend.addTo(map);
-
-// Add Event Handler for Master Checkbox
-document.getElementById('outdoor-gyms-master-checkbox').addEventListener('change', (event) => {
-    const isChecked = event.target.checked;
-    if (isChecked) {
-        outdoorGym.addTo(map);
-    } else {
-        map.removeLayer(outdoorGym);
-    }
-});
-
-
-
-// Legend Event Handlers
-function setupLegendHandlers(layers, masterCheckboxId) {
-    const masterCheckbox = document.getElementById(masterCheckboxId);
-    masterCheckbox.addEventListener('change', () => {
-        const isChecked = masterCheckbox.checked;
-        document.querySelectorAll(`#${masterCheckboxId.replace('-master-checkbox', '')}-subcategories .legend-checkbox`)
-            .forEach((checkbox) => {
-                checkbox.checked = isChecked;
-                const layerName = checkbox.dataset.layer;
-                if (layers[layerName]) {
-                    if (isChecked) {
-                        layers[layerName].addTo(map);
-                    } else {
-                        map.removeLayer(layers[layerName]);
-                    }
-                }
-            });
-    });
-
-    document.addEventListener('change', (event) => {
-        if (event.target.classList.contains('legend-checkbox')) {
-            const layerName = event.target.dataset.layer;
-            const isChecked = event.target.checked;
-            if (layers[layerName]) {
-                if (isChecked) {
-                    layers[layerName].addTo(map);
-                } else {
-                    map.removeLayer(layers[layerName]);
-                }
-            }
-
-            const allCheckboxes = document.querySelectorAll(`#${masterCheckboxId.replace('-master-checkbox', '')}-subcategories .legend-checkbox`);
-            const allChecked = Array.from(allCheckboxes).every((checkbox) => checkbox.checked);
-            const someChecked = Array.from(allCheckboxes).some((checkbox) => checkbox.checked);
-            masterCheckbox.checked = allChecked;
-            masterCheckbox.indeterminate = !allChecked && someChecked;
-        }
-    });
-}
-
-// Set Up Handlers
-setupLegendHandlers(leisureAreas, "leisure-areas-master-checkbox");
-setupLegendHandlers(buildings, "buildings-master-checkbox");
-setupLegendHandlers({ "Outdoor Gym Locations": outdoorGym }, "outdoor-gyms-master-checkbox");
-
-
-
-
-
-// Parks Layer
-const parks = L.layerGroup();
-L.geoJSON({
+// Parks GeoJSON Example
+const parksGeoJSON = {
     "type": "FeatureCollection",
     "features": [
 { "type": "Feature", "properties": { "fid": "6", "osm_id": "93848", "osm_way_id": null, "name": null, "type": "multipolygon", "aeroway": null, "amenity": null, "admin_level": null, "barrier": null, "boundary": null, "building": null, "craft": null, "geological": null, "historic": null, "land_area": null, "landuse": null, "leisure": "park", "man_made": null, "military": null, "natural": null, "office": null, "place": null, "shop": null, "sport": null, "tourism": null, "other_tags": null }, "geometry": { "type": "MultiPolygon", "coordinates": [ [ [ [ 26.7302055, 58.355611300000014 ], [ 26.7302078, 58.3557066 ], [ 26.7302362, 58.355742 ], [ 26.7303163, 58.3557651 ], [ 26.7308776, 58.3557798 ], [ 26.7310077, 58.3557673 ], [ 26.7311455, 58.3557269 ], [ 26.731963, 58.355393 ], [ 26.732971, 58.355152 ], [ 26.73407, 58.355124 ], [ 26.73921, 58.355302 ], [ 26.74035, 58.355295 ], [ 26.74052, 58.355256 ], [ 26.740683, 58.355131 ], [ 26.7406902, 58.354179300000013 ], [ 26.7404863, 58.35417 ], [ 26.738336, 58.354094 ], [ 26.7382858, 58.35381550000001 ], [ 26.7364878, 58.3538354 ], [ 26.73493, 58.353849 ], [ 26.7325256, 58.353764200000015 ], [ 26.7325452, 58.353495799999983 ], [ 26.7307442, 58.353446600000012 ], [ 26.7306909, 58.3537488 ], [ 26.7309368, 58.3537417 ], [ 26.731054, 58.353712 ], [ 26.731081, 58.35351 ], [ 26.731243, 58.353517 ], [ 26.731216, 58.353718 ], [ 26.7311479, 58.3537542 ], [ 26.7310404, 58.3537811 ], [ 26.7308617, 58.3538002 ], [ 26.73054, 58.353879900000024 ], [ 26.730282, 58.35512 ], [ 26.7303984, 58.355123300000017 ], [ 26.7311567, 58.355153500000014 ], [ 26.7310982, 58.355644900000016 ], [ 26.7309277, 58.355641 ], [ 26.730924, 58.355673 ], [ 26.730455, 58.355658 ], [ 26.7304595, 58.3556221 ], [ 26.730352, 58.355616600000012 ], [ 26.7302055, 58.355611300000014 ] ], [ [ 26.732703, 58.3547781 ], [ 26.7317259, 58.3547319 ], [ 26.7318549, 58.3541218 ], [ 26.7335324, 58.3541806 ], [ 26.7333543, 58.3548299 ], [ 26.7327327, 58.3547805 ], [ 26.732703, 58.3547781 ] ] ] ] } },
@@ -627,14 +456,13 @@ L.geoJSON({
 { "type": "Feature", "properties": { "fid": "26968", "osm_id": null, "osm_way_id": "1017339743", "name": null, "type": null, "aeroway": null, "amenity": null, "admin_level": null, "barrier": null, "boundary": null, "building": null, "craft": null, "geological": null, "historic": null, "land_area": null, "landuse": null, "leisure": "park", "man_made": null, "military": null, "natural": null, "office": null, "place": null, "shop": null, "sport": null, "tourism": null, "other_tags": null }, "geometry": { "type": "MultiPolygon", "coordinates": [ [ [ [ 26.7211036, 58.378655 ], [ 26.7212635, 58.3785408 ], [ 26.7214352, 58.378411499999984 ], [ 26.7215575, 58.3783456 ], [ 26.7217141, 58.378286 ], [ 26.7219609, 58.378236 ], [ 26.7221014, 58.3782157 ], [ 26.7222495, 58.3782 ], [ 26.722331, 58.378210600000017 ], [ 26.7225274, 58.378272 ], [ 26.7225681, 58.378248300000017 ], [ 26.7225145, 58.3781116 ], [ 26.7224651, 58.378083499999988 ], [ 26.7223257, 58.3781268 ], [ 26.722183, 58.378112199999983 ], [ 26.7219405, 58.3781212 ], [ 26.7218793, 58.3781578 ], [ 26.7216733, 58.3781898 ], [ 26.7211498, 58.378286 ], [ 26.7206788, 58.3783389 ], [ 26.7211036, 58.378655 ] ] ] ] } },
 { "type": "Feature", "properties": { "fid": "26969", "osm_id": null, "osm_way_id": "1017394299", "name": null, "type": null, "aeroway": null, "amenity": null, "admin_level": null, "barrier": null, "boundary": null, "building": null, "craft": null, "geological": null, "historic": null, "land_area": null, "landuse": null, "leisure": "park", "man_made": null, "military": null, "natural": null, "office": null, "place": null, "shop": null, "sport": null, "tourism": null, "other_tags": "\"wikidata\"=>\"Q4859955\",\"wikipedia\"=>\"et:Barclay plats\"" }, "geometry": { "type": "MultiPolygon", "coordinates": [ [ [ [ 26.72342, 58.3793295 ], [ 26.7226029, 58.3790569 ], [ 26.7231876, 58.378508400000015 ], [ 26.7235443, 58.3785984 ], [ 26.7237562, 58.3786856 ], [ 26.7239279, 58.3787841 ], [ 26.7241156, 58.3788713 ], [ 26.7241371, 58.3789163 ], [ 26.7239184, 58.379053100000014 ], [ 26.7235416, 58.3792889 ], [ 26.72342, 58.3793295 ] ] ] ] } }
     ]
-}, {
-    style: {
-        fillColor: '#ceead6',
-        fillOpacity: 1,
-        color: 'none',
-        weight: 0
-    }
-}).addTo(parks);
+};
+
+L.geoJSON(parksGeoJSON, {
+    style: { fillColor: '#6ca680', fillOpacity: 0.4, color: '#b7d7be', weight: 1 },
+    onEachFeature: (feature, layer) => parks.addLayer(layer)
+});
+
 
 
 
@@ -856,45 +684,200 @@ L.geoJSON({
     style: {
         fillColor: '#9cc0f9',
         fillOpacity: 1,
-        color: '#6498d2',
+        color: '#8cb3e0',
         weight: 1
     }
 }).addTo(map);
 
 
-// Create Parks Legend
-const parksLegend = L.control({ position: 'topright' });
 
-parksLegend.onAdd = () => {
-    const div = L.DomUtil.create('div', 'legend-container');
-    div.innerHTML = `
-        <h4>
-            <input type="checkbox" id="parks-master-checkbox" name="parks-master-checkbox" checked>
-            <label for="parks-master-checkbox">
-                <div class="legend-symbol" style="background-color: green; display: inline-block; width: 20px; height: 20px; border: 1px solid #ccc; margin-right: 5px;"></div>
-                Parks
-            </label>
-        </h4>
-    `;
-    return div;
-};
 
-// Add Parks Legend to Map
-parksLegend.addTo(map);
 
-// Add Event Handler for Parks Checkbox
-document.getElementById('parks-master-checkbox').addEventListener('change', (event) => {
-    const isChecked = event.target.checked;
+
+// Toggle legend content
+function toggleLegend(categoryId) {
+    const content = document.getElementById(`legend-${categoryId}`);
+    content.style.display = content.style.display === "block" ? "none" : "block";
+}
+
+// Toggle parent and child layers
+function toggleParentLayer(layerGroup, masterCheckboxId, childLayerKeys) {
+    const masterCheckbox = document.getElementById(masterCheckboxId);
+    const isChecked = masterCheckbox.checked;
+
+    childLayerKeys.forEach((key) => {
+        const layerCheckbox = document.getElementById(`${masterCheckboxId}-${key}`);
+        if (layerCheckbox) {
+            layerCheckbox.checked = isChecked; // Sync child checkboxes with parent
+            if (isChecked) {
+                layerGroup[key].addTo(map);
+            } else {
+                map.removeLayer(layerGroup[key]);
+            }
+        }
+    });
+}
+
+
+// Toggle legend content
+function toggleLegend(categoryId) {
+    const content = document.getElementById(`legend-${categoryId}`);
+    content.style.display = content.style.display === "block" ? "none" : "block";
+}
+
+// Toggle parent and child layers
+function toggleParentLayer(layerGroup, masterCheckboxId, childLayerKeys) {
+    const masterCheckbox = document.getElementById(masterCheckboxId);
+    const isChecked = masterCheckbox.checked;
+
+    childLayerKeys.forEach((key) => {
+        const layerCheckbox = document.getElementById(`${masterCheckboxId}-${key}`);
+        if (layerCheckbox) {
+            layerCheckbox.checked = isChecked; // Sync child checkboxes with parent
+            toggleChildLayer(layerGroup[key], `${masterCheckboxId}-${key}`, isChecked);
+        }
+    });
+}
+
+
+
+
+// Toggle individual child layer
+function toggleChildLayer(layer, checkboxId, state = null) {
+    const checkbox = document.getElementById(checkboxId);
+    const isChecked = state !== null ? state : checkbox.checked;
+
     if (isChecked) {
-        parks.addTo(map);
+        layer.addTo(map);
     } else {
-        map.removeLayer(parks);
+        map.removeLayer(layer);
     }
-});
+}
 
 
 
-<!-- // Add Layers to Map -->
+
+// Ensure layers are properly initialized and displayed
+function initializeLayers() {
+    // Add parks to the map first (bottom layer)
+    if (document.getElementById('parks-checkbox').checked) {
+        parks.addTo(map);
+    }
+
+    // Add leisure areas to the map next
+    Object.keys(leisureAreas).forEach(name => {
+        const layer = leisureAreas[name];
+        const isChecked = document.getElementById(`leisure-areas-master-checkbox-${name}`).checked;
+        if (isChecked) {
+            layer.addTo(map);
+        }
+    });
+
+    // Add building layers to the map
+    Object.keys(buildings).forEach(name => {
+        const layer = buildings[name];
+        const isChecked = document.getElementById(`buildings-master-checkbox-${name}`).checked;
+        if (isChecked) {
+            layer.addTo(map);
+        }
+    });
+
+    // Add outdoor gyms to the map last (top layer)
+    if (document.getElementById('outdoor-gyms-master-checkbox').checked) {
+        outdoorGym.addTo(map);
+    }
+}
+	
+	
+	
+
+// Populate the legends
+
+
+
+// Populate the legends
+function populateLegends() {
+    // Helper function to create a styled legend symbol
+    function createLegendSymbol(style, shape = 'rectangle') {
+        const shapeStyle = shape === 'circle' 
+            ? 'border-radius: 50%;' 
+            : 'border-radius: 0;'; // Rectangle by default
+        return `<div style="
+            width: 20px;
+            height: 20px;
+            ${style};
+            margin-right: 10px;
+            border: 1px solid grey;
+            flex-shrink: 0;
+            ${shapeStyle}"></div>`;
+    }
+
+
+    // Leisure Areas
+    document.getElementById('legend-leisure-areas').innerHTML = `
+        <div>
+            <input type="checkbox" id="leisure-areas-master-checkbox" checked
+                onclick="toggleParentLayer(leisureAreas, 'leisure-areas-master-checkbox', Object.keys(leisureAreas))">
+            <label for="leisure-areas-master-checkbox">Leisure Areas</label>
+        </div>
+        ${Object.keys(leisureAreas).map(name => `
+            <div style="margin-left: 20px; display: flex; align-items: center;">
+                ${createLegendSymbol(`
+                    background: repeating-linear-gradient(
+                        45deg,
+                        ${getLeisureColor(name)},
+                        ${getLeisureColor(name)} 5px, /* Increase density */
+                        white 5px,
+                        white 10px
+                    );`, 'rectangle')}
+                <input type="checkbox" id="leisure-areas-master-checkbox-${name}" checked
+                    onclick="toggleChildLayer(leisureAreas['${name}'], 'leisure-areas-master-checkbox-${name}')">
+                <label for="leisure-areas-master-checkbox-${name}">${name}</label>
+            </div>
+        `).join('')}`;
+    
+
+
+    
+    // Buildings
+    document.getElementById('legend-buildings').innerHTML = `
+        <div>
+            <input type="checkbox" id="buildings-master-checkbox" checked
+                onclick="toggleParentLayer(buildings, 'buildings-master-checkbox', Object.keys(buildings))">
+            <label for="buildings-master-checkbox">Buildings</label>
+        </div>
+        ${Object.keys(buildings).map(name => `
+            <div style="margin-left: 20px; display: flex; align-items: center; margin-bottom: 10px;"> <!-- Added consistent margin -->
+                ${createLegendSymbol(`background-color: ${getBuildingsColor(name)};`, 'rectangle')}
+                <input type="checkbox" id="buildings-master-checkbox-${name}" checked
+                    onclick="toggleChildLayer(buildings['${name}'], 'buildings-master-checkbox-${name}')">
+                <label for="buildings-master-checkbox-${name}">${name}</label>
+            </div>
+        `).join('')}`;
+    
+    // Outdoor Gyms
+    document.getElementById('legend-outdoor-gyms').innerHTML = `
+        <div style="display: flex; align-items: center;">
+            ${createLegendSymbol(`background-color: red`)}
+            <input type="checkbox" id="outdoor-gyms-master-checkbox" checked
+                onclick="toggleChildLayer(outdoorGym, 'outdoor-gyms-master-checkbox')">
+            <label for="outdoor-gyms-master-checkbox">Outdoor Gym Locations</label>
+        </div>`;
+    
+    // Parks
+    document.getElementById('legend-parks').innerHTML = `
+        <div style="display: flex; align-items: center;">
+            ${createLegendSymbol(`background-color: green`, 'rectangle')}
+            <input type="checkbox" id="parks-checkbox" checked
+                onclick="toggleChildLayer(parks, 'parks-checkbox')">
+            <label for="parks-checkbox">Parks</label>
+        </div>`;
+}
+
+
+
+
+
 parks.addTo(map);
 
 Object.values(leisureAreas).forEach(layer => layer.addTo(map));
@@ -903,17 +886,15 @@ Object.values(buildings).forEach(layer => layer.addTo(map));
 
 
 
-	
-	 // Add "Default" button functionality
-        function defaultMapSettings() {
-            map.setView([58.373523, 26.716045], 14);
-        }
-	
+// Call to populate the legends and initialize layers
+populateLegends();
+initializeLayers();
 
-   
+
+
+
+
 </script>
+
 </body>
 </html>
-
-
-
