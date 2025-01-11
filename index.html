@@ -1,35 +1,43 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Legend with Parent-Child Control</title>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css">
     <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/leaflet.pattern@0.1.0/dist/leaflet.pattern.js"></script>
     <style>
+        /* Full-height map with responsive design */
         #map {
-            height: 100vh;
+            height: 100vh; /* Full height for mobile devices */
+            width: 100%;
         }
+
+        /* Compact legend with better responsiveness */
         .compact-legend {
-            font-size: 12px;
+            font-size: 14px;
             padding: 10px;
             background-color: white;
             border: 1px solid #ccc;
             border-radius: 5px;
             box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
-            max-width: 250px;
-            position: absolute;
+            max-width: 300px; /* Adjusted width for better mobile view */
+            position: absolute; /* Keep it inside the map area */
             top: 10px;
-            right: 10px;
+            left: 10px;
             z-index: 1000;
+            overflow: auto; /* Prevent the legend from overflowing the map */
         }
+
+        /* Collapsible legend content */
         .legend-content {
             display: none;
             margin-top: 5px;
             margin-bottom: 10px;
         }
+
+        /* Parent buttons with child content toggle */
         button {
             width: 100%;
             text-align: left;
@@ -38,30 +46,82 @@
             border-radius: 5px;
             margin-top: 5px;
             cursor: pointer;
+            padding: 10px;
+            font-size: 14px; /* Improved readability */
         }
+
         button:hover {
             background-color: #eaeaea;
         }
-		
-		 .small-button {
-        width: auto; /* Adjust width to fit the content */
-        padding: 5px 10px; /* Smaller padding for a compact size */
-        font-size: 12px; /* Adjust font size for smaller text */
-        text-align: center; /* Center the text */
-        background-color: #f9f9f9; /* Match other buttons */
-        border: 1px solid #ccc;
-        border-radius: 5px;
-        cursor: pointer;
-    }
 
-    .small-button:hover {
-        background-color: #eaeaea; /* Match hover behavior */
-    }
-		
-		
-		
+        /* Small buttons for compactness */
+        .small-button {
+            width: auto;
+            padding: 5px 10px;
+            font-size: 12px;
+            text-align: center;
+            background-color: #f9f9f9;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .small-button:hover {
+            background-color: #eaeaea;
+        }
+
+        /* Mobile-friendly adjustments */
+        @media (max-width: 768px) {
+            .compact-legend {
+                max-width: 100%; /* Legend becomes full width on mobile */
+                position: fixed; /* Position fixed for mobile, stays in view */
+                top: 10px;
+                left: 50%;
+                transform: translateX(-50%); /* Center it on the screen */
+                z-index: 1000;
+                margin-top: 20px; /* Add some space from top */
+            }
+            
+            button {
+                padding: 8px; /* Adjust button padding for smaller screens */
+                font-size: 12px; /* Smaller text on mobile */
+            }
+
+            .small-button {
+                font-size: 10px; /* Smaller button text for mobile */
+                padding: 4px 8px; /* Smaller padding */
+            }
+        }
+
+        /* Extra small screen adjustments (below 480px) */
+        @media (max-width: 480px) {
+            #map {
+                height: 100vh; /* Full height for very small screens */
+            }
+
+            .compact-legend {
+                font-size: 12px; /* Further reduce font size for mobile */
+                padding: 8px; /* Slightly smaller padding for mobile devices */
+                max-width: 100%;
+                position: fixed; /* Keep it fixed on very small screens */
+                top: 10px;
+                left: 50%;
+                transform: translateX(-50%); /* Center the legend */
+            }
+
+            button {
+                padding: 6px; /* Smaller button padding for very small screens */
+            }
+
+            .small-button {
+                font-size: 9px; /* Even smaller button text for small screens */
+                padding: 3px 6px; /* Reduce padding further */
+            }
+        }
     </style>
 </head>
+
+
 <body>
 
 <div id="map"></div>
@@ -87,23 +147,31 @@
 </div>
 
 
-
-
 <script>
     // Initialize the map
-    const map = L.map('map').setView([58.373523, 26.716045], 12);
+    const map = L.map('map').setView([58.374158, 26.717253], 14.5);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 19,
 		opacity: 0.3,
         attribution: 'OpenStreetMap contributors',
     }).addTo(map);
+	
+	
+// Define panes and their z-index order
+map.createPane('pane-outdoor').style.zIndex = 650; // Topmost
+map.createPane('pane-buildings').style.zIndex = 600;
+map.createPane('pane-leisure').style.zIndex = 550;
+map.createPane('pane-parks').style.zIndex = 500; // Bottommost
+	
+	
+	
 
     // Define the layers
     const leisureAreas = {
-        "Tähtvere Sports Park": L.layerGroup(),
-        "Rüütli Street": L.layerGroup(),
-        "Aparaaditehas Cultural Center": L.layerGroup(),
-        "Raekoja Plats": L.layerGroup()
+        "Tähtvere Sports Park": L.layerGroup([], { pane: 'pane-leisure' }),
+        "Rüütli Street": L.layerGroup([], { pane: 'pane-leisure' }),
+        "Aparaaditehas Cultural Center": L.layerGroup([], { pane: 'pane-leisure' }),
+        "Raekoja Plats": L.layerGroup([], { pane: 'pane-leisure' })
     };
 	
 	
@@ -113,22 +181,22 @@
 	
 
     const buildings = {
-        "Museum": L.layerGroup(),
-        "Library": L.layerGroup(),
-        "Student Residence": L.layerGroup(),
-        "Tartu University Hospital": L.layerGroup(),
-        "University Building": L.layerGroup(),
-        "University Building with Library": L.layerGroup(),
-        "University Building with Library and Museum": L.layerGroup(),
-        "University Building with Library and Gym": L.layerGroup(),
-        "University Building with Museum": L.layerGroup(),
-        "University of Tartu Botanical Garden": L.layerGroup(),
-        "Counselling and psychotherapy centres and clinics": L.layerGroup(),
-        "National Archives of Estonia": L.layerGroup()
+        "Museum": L.layerGroup([], { pane: 'pane-buildings' }),
+        "Library": L.layerGroup([], { pane: 'pane-buildings' }),
+        "Student Residence": L.layerGroup([], { pane: 'pane-buildings' }),
+        "Tartu University Hospital": L.layerGroup([], { pane: 'pane-buildings' }),
+        "University Building": L.layerGroup([], { pane: 'pane-buildings' }),
+        "University Building with Library": L.layerGroup([], { pane: 'pane-buildings' }),
+        "University Building with Library and Museum": L.layerGroup([], { pane: 'pane-buildings' }),
+        "University Building with Library and Gym": L.layerGroup([], { pane: 'pane-buildings' }),
+        "University Building with Museum": L.layerGroup([], { pane: 'pane-buildings' }),
+        "University of Tartu Botanical Garden": L.layerGroup([], { pane: 'pane-buildings' }),
+        "Counselling and psychotherapy centres and clinics": L.layerGroup([], { pane: 'pane-buildings' }),
+        "National Archives of Estonia": L.layerGroup([], { pane: 'pane-buildings' }),
     };
 
-    const outdoorGym = L.layerGroup();
-    const parks = L.layerGroup();
+    const outdoorGym = L.layerGroup([], { pane: 'pane-outdoor' });
+    const parks = L.layerGroup([],{ pane: 'pane-parks' });
 
     // Example GeoJSON for Leisure Areas
     const leisureGeoJSON = {
@@ -182,7 +250,8 @@ L.geoJSON(leisureGeoJSON, {
             leisureAreas[name].addLayer(layer);
         }
         layer.bindPopup(`<b>Name:</b> ${name}`);
-    }
+    },
+	pane: 'pane-leisure'
 });
 
     // Example GeoJSON for Buildings
@@ -345,7 +414,9 @@ L.geoJSON(buildingsGeoJSON, {
         if (buildings[type]) {
             buildings[type].addLayer(layer);
         }
-    }
+    },
+        pane: 'pane-buildings'
+
 });
 
 
@@ -373,13 +444,19 @@ L.geoJSON(outdoorGymGeoJSON, {
             weight: 1,
         });
     },
+		pane: 'pane-outdoor',
+
     onEachFeature: (feature, layer) => {
         if (feature.properties && feature.properties.Name) {
             layer.bindPopup(`<b>Name:</b> ${feature.properties.Name}`);
         }
         outdoorGym.addLayer(layer);
     }
-});
+    });
+
+
+
+
 
 
 // Parks GeoJSON Example
@@ -460,6 +537,7 @@ const parksGeoJSON = {
 
 L.geoJSON(parksGeoJSON, {
     style: { fillColor: '#6ca680', fillOpacity: 0.4, color: '#b7d7be', weight: 1 },
+		pane: 'pane-parks',
     onEachFeature: (feature, layer) => parks.addLayer(layer)
 });
 
@@ -694,35 +772,45 @@ L.geoJSON({
 
 
 
+<!-- // Toggle legend content -->
+<!-- function toggleLegend(categoryId) { -->
+    <!-- const content = document.getElementById(`legend-${categoryId}`); -->
+    <!-- content.style.display = content.style.display === "block" ? "none" : "block"; -->
+<!-- } -->
+
+<!-- // Toggle parent and child layers -->
+<!-- function toggleParentLayer(layerGroup, masterCheckboxId, childLayerKeys) { -->
+    <!-- const masterCheckbox = document.getElementById(masterCheckboxId); -->
+    <!-- const isChecked = masterCheckbox.checked; -->
+
+    <!-- childLayerKeys.forEach((key) => { -->
+        <!-- const layerCheckbox = document.getElementById(`${masterCheckboxId}-${key}`); -->
+        <!-- if (layerCheckbox) { -->
+            <!-- layerCheckbox.checked = isChecked; // Sync child checkboxes with parent -->
+            <!-- if (isChecked) { -->
+                <!-- layerGroup[key].addTo(map); -->
+            <!-- } else { -->
+                <!-- map.removeLayer(layerGroup[key]); -->
+            <!-- } -->
+        <!-- } -->
+    <!-- }); -->
+<!-- } -->
+
+
 // Toggle legend content
 function toggleLegend(categoryId) {
     const content = document.getElementById(`legend-${categoryId}`);
     content.style.display = content.style.display === "block" ? "none" : "block";
 }
 
-// Toggle parent and child layers
-function toggleParentLayer(layerGroup, masterCheckboxId, childLayerKeys) {
-    const masterCheckbox = document.getElementById(masterCheckboxId);
-    const isChecked = masterCheckbox.checked;
-
-    childLayerKeys.forEach((key) => {
-        const layerCheckbox = document.getElementById(`${masterCheckboxId}-${key}`);
-        if (layerCheckbox) {
-            layerCheckbox.checked = isChecked; // Sync child checkboxes with parent
-            if (isChecked) {
-                layerGroup[key].addTo(map);
-            } else {
-                map.removeLayer(layerGroup[key]);
-            }
-        }
-    });
-}
 
 
-// Toggle legend content
-function toggleLegend(categoryId) {
-    const content = document.getElementById(`legend-${categoryId}`);
-    content.style.display = content.style.display === "block" ? "none" : "block";
+// Enforce layer order dynamically
+function enforceLayerOrder() {
+    parks.eachLayer(layer => layer.bringToBack()); // Parks should always be at the bottom
+    Object.values(leisureAreas).forEach(group => group.eachLayer(layer => layer.bringToBack())); // Leisure areas above parks
+    Object.values(buildings).forEach(group => group.eachLayer(layer => layer.bringToFront())); // Buildings above leisure areas
+    outdoorGym.eachLayer(layer => layer.bringToFront()); // Outdoor gym should always be on top
 }
 
 // Toggle parent and child layers
@@ -737,6 +825,9 @@ function toggleParentLayer(layerGroup, masterCheckboxId, childLayerKeys) {
             toggleChildLayer(layerGroup[key], `${masterCheckboxId}-${key}`, isChecked);
         }
     });
+	
+	  <!-- // Reapply the layer order after toggling -->
+    enforceLayerOrder();
 }
 
 
@@ -752,6 +843,10 @@ function toggleChildLayer(layer, checkboxId, state = null) {
     } else {
         map.removeLayer(layer);
     }
+
+
+    <!-- // Reapply the layer order after toggling -->
+    enforceLayerOrder();
 }
 
 
@@ -786,6 +881,10 @@ function initializeLayers() {
     if (document.getElementById('outdoor-gyms-master-checkbox').checked) {
         outdoorGym.addTo(map);
     }
+	
+	
+	    <!-- // Enforce initial layer order -->
+    enforceLayerOrder();
 }
 	
 	
@@ -878,17 +977,24 @@ function populateLegends() {
 
 
 
+// Add Layers to Map
 parks.addTo(map);
-
 Object.values(leisureAreas).forEach(layer => layer.addTo(map));
-outdoorGym.addTo(map);
 Object.values(buildings).forEach(layer => layer.addTo(map));
-
-
+outdoorGym.addTo(map);
 
 // Call to populate the legends and initialize layers
 populateLegends();
 initializeLayers();
+
+
+
+
+ // Add "Default" button functionality
+        function defaultMapSettings() {
+            map.setView([58.373523, 26.716045], 14.5);
+        }
+	
 
 
 
